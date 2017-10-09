@@ -1,13 +1,13 @@
-FROM alpine:3.4
+FROM alpine:latest
 
-RUN apk --update add nginx php5-fpm && \
-    mkdir -p /var/log/nginx && \
-    touch /var/log/nginx/access.log && \
-    mkdir -p /run/nginx
+RUN apk update && apk add wget ca-certificates && cd /sbin && \
+	wget https://s3.ap-northeast-2.amazonaws.com/kc-seoul/kc-ml-fizzbuzz && chmod +x /sbin/kc-ml-fizzbuzz && \
+	wget https://s3.ap-northeast-2.amazonaws.com/kc-seoul/getkey.html && chmod +x /sbin/getkey.html
 
-ADD www /www
-ADD nginx.conf /etc/nginx/
-ADD php-fpm.conf /etc/php5/php-fpm.conf
-
-EXPOSE 80
-CMD php-fpm -d variables_order="EGPCS" && (tail -F /var/log/nginx/access.log &) && exec nginx -g "daemon off;"
+RUN adduser -S -H -s /bin/sh www
+ENV REDIS_URL redis:6379
+ENV PORT 8080
+EXPOSE 8080
+USER www
+WORKDIR /sbin
+ENTRYPOINT /sbin/kc-ml-fizzbuzz -max=35
